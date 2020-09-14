@@ -2,14 +2,22 @@ package com.matthewcannefax.fragmentandapipractice.ui.main;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.matthewcannefax.fragmentandapipractice.ImageItem;
 import com.matthewcannefax.fragmentandapipractice.R;
+import com.matthewcannefax.fragmentandapipractice.ViewPagerAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -26,6 +34,7 @@ public class FirstFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private ViewPager2 viewPager2;
 
     private MainViewModel viewModel;
 
@@ -61,6 +70,7 @@ public class FirstFragment extends Fragment {
 
         viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         viewModel.setCurrentFragment(this);
+
     }
 
     @Override
@@ -68,5 +78,39 @@ public class FirstFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_first, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        viewPager2 = requireActivity().findViewById(R.id.viewPager2);
+        ViewPagerAdapter adapter = new ViewPagerAdapter();
+        viewPager2.setAdapter(adapter);
+        List<ImageItem> items = new ArrayList<>();
+        items.add(new ImageItem(requireContext().getDrawable(R.drawable.hedgehog), 1));
+        items.add(new ImageItem(requireContext().getDrawable(R.drawable.kitty), 2));
+        items.add(new ImageItem(requireContext().getDrawable(R.drawable.puppy), 3));
+
+        adapter.submitList(items);
+
+        List<ImageItem> modifiedImages = new ArrayList<>();
+        modifiedImages.add(items.get(items.size() - 1));
+        modifiedImages.addAll(items);
+        modifiedImages.add(items.get(0));
+
+        viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                if (adapter.getCurrentList().size() != items.size()) {
+                    if (position == 0) {
+                        viewPager2.postDelayed(() -> viewPager2.setCurrentItem(adapter.getCurrentList().size() - 2, false), 200);
+                    } else if (position == adapter.getCurrentList().size() - 1) {
+                        viewPager2.postDelayed(() -> viewPager2.setCurrentItem(1, false), 200);
+                    }
+                }
+            }
+        });
+
+        viewPager2.post(() -> adapter.submitList(modifiedImages));
     }
 }
